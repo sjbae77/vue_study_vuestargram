@@ -11,29 +11,43 @@
 
   <Container :data="data" />
 
+  <button @click="more">더보기</button>
+
   <div class="footer">
     <ul class="footer-button-plus">
       <input type="file" id="file" class="inputfile" />
       <label for="file" class="input-plus">+</label>
     </ul>
- </div>
+  </div>
 </template>
 
 <script>
 import data from "./assets/data";
 import Container from "./components/Container.vue";
+import axios from "axios";
 
 export default {
-  name: 'App',
+  name: "App",
   data() {
     return {
       data: data,
-    }
+      btnCount: 0,
+    };
   },
   components: {
-    Container
-  }
-}
+    Container,
+  },
+  methods: {
+    more() {
+      axios
+        .get(`https://codingapple1.github.io/vue/more${this.btnCount}.json`)
+        .then((result) => {
+          this.data.push(result.data);
+          this.btnCount++;
+        });
+    },
+  },
+};
 </script>
 
 <style>
