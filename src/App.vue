@@ -4,18 +4,29 @@
       <li>Cancel</li>
     </ul>
     <ul class="header-button-right">
-      <li>Next</li>
+      <li v-if="step == 1" @click="step++">Next</li>
+      <li v-if="step == 2" @click="publish">발행</li>
     </ul>
     <img src="./assets/logo.png" class="logo" />
   </div>
 
-  <Container :data="data" />
+  <p>{{ name }} {{ age }}  {{ likes }} </p>
 
-  <button @click="more">더보기</button>
+
+  <p>{{ $store.state.more }}</p>
+  <button @click="$store.dispatch('getData')">더보기버튼</button>
+
+  
+  <button @click="$store.commit('changeName')">이름 변경 버튼</button>
+  <button @click="increaseAge(10)">나이 추가 버튼</button>
+
+  <Container :data="data" :step="step" :fileUrl="fileUrl" @write="write = $event" />
+
+  <!-- <button v-if="step == 0" @click="more">더보기</button> -->
 
   <div class="footer">
     <ul class="footer-button-plus">
-      <input type="file" id="file" class="inputfile" />
+      <input @change="upload" type="file" id="file" class="inputfile" />
       <label for="file" class="input-plus">+</label>
     </ul>
   </div>
@@ -24,7 +35,8 @@
 <script>
 import data from "./assets/data";
 import Container from "./components/Container.vue";
-import axios from "axios";
+import {mapState, mapMutations} from "vuex";
+// import axios from "axios";
 
 export default {
   name: "App",
@@ -32,19 +44,56 @@ export default {
     return {
       data: data,
       btnCount: 0,
+      step: 0,
+      fileUrl: "",
+      write: "",
+      sltFilter: "",
+      counter: 0,
     };
   },
+  mounted(){
+    this.emitter.on("boxClick", (a)=>{
+      this.sltFilter = a
+    })
+  },
+  
   components: {
     Container,
   },
+  computed: {
+    ...mapState(['name', 'age', 'likes']),
+    ...mapState({ 작명 : "name", })
+  },
   methods: {
-    more() {
-      axios
-        .get(`https://codingapple1.github.io/vue/more${this.btnCount}.json`)
-        .then((result) => {
-          this.data.push(result.data);
-          this.btnCount++;
-        });
+    ...mapMutations(['setMore', 'like', 'increaseAge']),
+
+    // more() {
+    //   axios
+    //     .get(`https://codingapple1.github.io/vue/more${this.btnCount}.json`)
+    //     .then((result) => {
+    //       this.data.push(result.data);
+    //       this.btnCount++;
+    //     });
+    // },
+    upload(e) {
+      let file = e.target.files;
+      console.log(file[0]);
+      this.fileUrl = URL.createObjectURL(file[0]);
+      this.step = 1;
+    },
+    publish() {
+      let myPost = {
+        name: "Kim Hyun",
+        userImage: "https://placeimg.com/100/100/arch",
+        postImage: this.fileUrl,
+        likes: 36,
+        date: "May 15",
+        liked: false,
+        content: this.write,
+        filter: this.sltFilter,
+      };
+      this.data.unshift(myPost);
+      this.step = 0;
     },
   },
 };
